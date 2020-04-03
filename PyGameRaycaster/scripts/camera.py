@@ -11,7 +11,7 @@ class Camera(pygame.sprite.Sprite):
         self.game = game
         self.speed = 80
         self.view_angle = 120
-        self.angle = 50
+        self.angle = 0
         self.ray_length = 100
 
         self.image = load_image('../resources/white_circle.png')
@@ -24,7 +24,9 @@ class Camera(pygame.sprite.Sprite):
 
         self.rotate = []
 
-        self.move = None
+        self.direction = None
+        self.move_forward = False
+        self.move_back = False
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -32,19 +34,42 @@ class Camera(pygame.sprite.Sprite):
                 self.rotate.append(self.speed)
             if event.key == pygame.K_a:
                 self.rotate.append(-self.speed)
+            if event.key == pygame.K_w:
+                self.move_forward = True
+            if event.key == pygame.K_s:
+                self.move_back = True
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_d:
                 self.rotate.remove(self.speed)
             if event.key == pygame.K_a:
                 self.rotate.remove(-self.speed)
+            if event.key == pygame.K_w:
+                self.move_forward = False
+            if event.key == pygame.K_s:
+                self.move_back = False
 
     def ray_cast(self):
-        for angle in range(int(self.angle), int(self.angle) + self.view_angle):
+        angles = range(int(self.angle), int(self.angle) + self.view_angle)
+        for angle in angles:
             pygame.draw.line(self.game.screen, pygame.Color('red'), (self.x + 10, self.y + 10),
-                             (int(cos(radians(angle)) * 100 + self.x + 10),
-                              int(sin(radians(angle)) * 100 + self.y + 10)), 4)
+                             (int(cos(radians(angle)) * self.ray_length + self.x + 10),
+                              int(sin(radians(angle)) * self.ray_length + self.y + 10)), 4)
+            if angles.index(angle) == self.view_angle // 2 + 1:
+                self.direction = (cos(radians(angle)) * (self.speed / self.game.FPS)), \
+                                 (sin(radians(angle)) * (self.speed / self.game.FPS))
+
+    def move(self):
+        if self.move_forward:
+            self.x += self.direction[0]
+            self.y += self.direction[1]
+        if self.move_back:
+            self.x = self.direction[0] - self.speed / self.game.FPS
+            self.y = self.direction[1] - self.speed / self.game.FPS
+        self.rect.x = int(self.x)
+        self.rect.y = int(self.y)
 
     def update(self):
         for angle in self.rotate:
             self.angle += angle / self.game.FPS
         self.ray_cast()
+        self.move()
