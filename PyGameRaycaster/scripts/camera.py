@@ -63,8 +63,8 @@ class Camera(pygame.sprite.Sprite):
             self.x += self.direction[0]
             self.y += self.direction[1]
         if self.move_back:
-            self.x = self.direction[0] - self.speed / self.game.FPS
-            self.y = self.direction[1] - self.speed / self.game.FPS
+            self.x -= self.direction[0]
+            self.y -= self.direction[1]
         self.rect.x = int(self.x)
         self.rect.y = int(self.y)
 
